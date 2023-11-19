@@ -1,0 +1,28 @@
+<table>
+	<thead>
+		<th> id </th>
+		<th> metadata </th>
+		<th> level </th>
+		<th> message </th>
+		<th> resourceId </th>
+		<th> timestamp </th>
+		<th> traceId </th>
+		<th> spanId </th>
+		<th> commit </th>
+	</thead>
+	<tbody>
+		{% for item in logs %}
+		<tr>
+			<td>{{ item.id }}</td>
+			<td>{{ item.metadata }}</td>
+			<td>{{ item.level }}</td>
+			<td>{{ item.message }}</td>
+			<td>{{ item.resourceId }}</td>
+			<td>{{ item.timestamp }}</td>
+			<td>{{ item.traceId }}</td>
+			<td>{{ item.spanId }}</td>
+			<td>{{ item.commit }}</td>
+		</tr>
+		{% endfor %}
+	</tbody>
+</table>

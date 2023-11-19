@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>Log Searcher 10K</title>
+	<style>
+		/* Style for search form */
+		form {
+			align-items: center;
+			margin-bottom: 20px;
+		}
+
+		.form-grid {
+			display: grid;
+			grid-template-columns: max-content 1fr;
+			gap: 10px;
+			align-items: center;
+		}
+
+		label {
+			margin-right: 10px;
+			padding: 10px;
+		}
+
+		input[type="text"],
+		select {
+			padding: 10px;
+			margin-right: 10px;
+			border: 1px solid #ccc;
+			border-radius: 5px;
+		}
+
+		button[type="button"] {
+			padding: 10px;
+			background-color: #007bff;
+			color: #fff;
+			border: none;
+			border-radius: 5px;
+			cursor: pointer;
+		}
+
+		button[type="button"]:hover {
+			background-color: #0069d9;
+		}
+
+		/* Apply styles to the table */
+		#searchResults {
+			width: 100%;
+			border-collapse: collapse;
+			margin-top: 20px;
+		}
+
+		/* Style the table header */
+		th {
+			background-color: #f2f2f2;
+			border: 1px solid #ddd;
+			padding: 8px;
+			text-align: left;
+		}
+
+		/* Style the table cells */
+		td {
+			border: 1px solid #ddd;
+			padding: 8px;
+			text-align: left;
+		}
+	</style>
+</head>
+
+<body>
+	<h1>Log Searcher 10K</h1>
+	<form id="searchForm">
+		<div class="form-grid">
+			<label of="level">Level</label>
+			<input type="text" name="level" id="level" placeholder="">
+
+			<label of="parentResourceId">Parent Id (Metadata)</label>
+			<input type="text" name="parentResourceId" id="parentResourceId" placeholder="">
+
+			<label of="resourceId">Resource Id</label>
+			<input type="text" name="resourceId" id="resourceId" placeholder="">
+
+			<label of="timestamp">Timestamp</label>
+			<input type="datetime-local" name="timestamp" id="timestamp" placeholder="">
+
+			<label of="traceId">Trace Id</label>
+			<input type="text" name="traceId" id="traceId" placeholder="">
+
+			<label of="spanId">Span Id</label>
+			<input type="text" name="spanId" id="spanId" placeholder="">
+
+			<label of="commit">Commit</label>
+			<input type="text" name="commit" id="commit" placeholder="">
+		</div>
+
+		<br>
+
+		<div>
+			<input type="text" name="search" id="search" placeholder="Search Logs">
+			<button type="button" id="searchButton">Search</button>
+		</div>
+	</form>
+
+	<!-- Updated with fresh results -->
+	<div id="searchResults">
+		{% include 'table.html' %}
+	</div>
+
+
+	<script>
+
+		document.getElementById('searchButton').addEventListener('click', function () {
+			var query = document.getElementById('search').value;
+			var commit = document.getElementById('commit').value;
+			var span = document.getElementById('spanId').value;
+			var trace = document.getElementById('traceId').value;
+			var resource = document.getElementById('resourceId').value;
+			var parentResource = document.getElementById('parentResourceId').value;
+			var level = document.getElementById('level').value;
+			var timestamp = document.getElementById('timestamp').value;
+
+			var url = "/logsearch/?";
+			url += "search=" + query;
+			if (timestamp) {
+				url += "&timestamp=" + timestamp;
+			}
+			if (commit) {
+				url += "&commit=" + commit;
+			}
+			if (span) {
+				url += "&spanId=" + span;
+			}
+			if (trace) {
+				url += "&traceId=" + trace;
+			}
+			if (resource) {
+				url += "&resourceId=" + resource;
+			}
+			if (parentResource) {
+				url += "&metadata__parentResourceId=" + parentResource;
+			}
+			if (level) {
+				url += "&level=" + level;
+			}
+
+
+
+			var xhr = new XMLHttpRequest();
+			xhr.open("GET", url, true);
+			xhr.onload = function () {
+				if (xhr.status === 200) {
+					var data = JSON.parse(xhr.responseText);
+					var table = document.getElementById('searchResults');
+					table.innerHTML = convertJsonToTable(data);
+				} else {
+					console.error('Request failed. Status: ' + xhr.status);
+				}
+			}
+			xhr.send();
+		});
+		function convertJsonToTable(jsonData) {
+			var table = '<table>';
+			table += '<thead><tr>';
+			for (var key in jsonData[0]) {
+				table += '<th>' + key + '</th>';
+			}
+			table += '</tr></thead>';
+			table += '<tbody>';
+			jsonData.forEach(function (item) {
+				table += '<tr>';
+				for (var key in item) {
+					table += '<td>' + JSON.stringify(item[key]) + '</td>';
+				}
+				table += '</tr>';
+			});
+			table += '</tbody>';
+			table += '</table>';
+			return table;
+		}
+		function displayResultsInTable(data) {
+			var table = document.getElementById('searchResults');
+			table.innerHTML = ''; // Clear previous results
+
+			// Create table header
+			var thead = document.createElement('thead');
+			var headerRow = document.createElement('tr');
+			var th = document.createElement('th');
+			for (var key in data[0]) {
+				var th = document.createElement('th');
+				th.appendChild(document.createTextNode(key));
+				headerRow.appendChild(th);
+			}
+			thead.appendChild(headerRow);
+			table.appendChild(thead);
+
+			// Create table body
+			var tbody = document.createElement('tbody');
+			data.forEach(function (item) {
+				var row = tbody.insertRow();
+				for (var key in item) {
+					var cell = row.insertCell();
+					cell.appendChild(document.createTextNode(item[key]));
+				}
+			});
+			table.appendChild(tbody);
+		}
+
+
+	</script>
+</body>
+
+</html>
